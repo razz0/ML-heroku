@@ -1,2 +1,4 @@
 gunicorn==19.0.0
 Flask
+Flask-Table
+git+git://github.com/razz0/ML-project.git#egg=ML-project
