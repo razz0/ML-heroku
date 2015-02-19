@@ -1,4 +1,6 @@
 gunicorn==19.0.0
 Flask
-Flask-Table
 git+git://github.com/razz0/ML-project.git#egg=ML-project
+numpy==1.9.1
+scipy==0.15.1
+scikit-learn==0.15.2
