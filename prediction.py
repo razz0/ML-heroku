@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 app.debug = True
 
-harvester = APIHarvester()
+harvester = APIHarvester(logfile="harvester.log")
 prediction_model = joblib.load('model/predictor_model.pkl')
 
 
