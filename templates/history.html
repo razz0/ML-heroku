@@ -4,9 +4,19 @@
     <th>Temp</th>
     <th>Wind</th>
     <th>Rainfall</th>
-    {% for model, value in disruptions.itervalues().next()|dictsort %}
+    <th>Observed disruptions</th>
+    {% for model, value in predicted.itervalues().next()|dictsort %}
         <th>{{ model }}</th>
     {% endfor %}
+  </tr>
+  <tr>
+    <th>Accuracy</th>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td>100</td>
+    <td>x</td>
+    <td>y</td>
   </tr>
 {% for time, value in forecasts|dictsort %}
   <tr>
@@ -14,7 +24,8 @@
     <td>{{ value['Temperature'] }}</td>
     <td>{{ value['WindSpeedMS'] }}</td>
     <td>{{ value['Precipitation1h'] }}</td>
-    {% for model, dis in disruptions[time]|dictsort %}
+    <td>{{ actual[time] }}</td>
+    {% for model, dis in predicted[time]|dictsort %}
         <td>{{ dis }}</td>
     {% endfor %}
   </tr>

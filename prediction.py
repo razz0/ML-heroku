@@ -1,26 +1,68 @@
+from collections import defaultdict
+import copy
+import json
 import os
 from flask import Flask, render_template
+import iso8601
 from sklearn.externals import joblib
 from apiharvester import APIHarvester
 
-app = Flask(__name__)
+from store_predictions import FORECAST_FILE
+from models import prediction_models
 
+OBSERVED_DISRUPTIONS_FILE = 'disruptions_observed.json'
+
+app = Flask(__name__)
+app.config['DEBUG'] = True
 app.debug = True
+
+if __name__ == '__main__':
+    app.run()
 
 apikey = os.environ['fmi_apikey']
 harvester = APIHarvester(logfile="harvester.log", apikey=apikey)
-prediction_model = joblib.load('model/predictor_model.pkl')
 
 
 @app.route('/')
 def prediction():
+    disruptions = defaultdict(dict)
     forecasts = harvester.fmi_forecast()
-    for forecast, values in forecasts.iteritems():
-        value_tuple = (float(values['Precipitation1h']), float(values['Temperature']), float(values['WindSpeedMS']))
-        disruptions = prediction_model.predict(value_tuple)[0]
-        values.update({'prediction': disruptions})
 
-    return render_template('prediction.html', forecasts=forecasts)
+    for timestamp, values in forecasts.iteritems():
+        for model in prediction_models:
+            value_tuple = (float(values['Precipitation1h']), float(values['Temperature']), float(values['WindSpeedMS']))
+            disruption_amount = model.predict(value_tuple)
+            disruptions[timestamp].update({model.name: disruption_amount})
+
+    return render_template('prediction.html', forecasts=forecasts, disruptions=disruptions)
+
+
+@app.route('/history/')
+def prediction_history():
+    stored_disruptions = defaultdict(dict)
+    stored_observed_disruptions = harvester.read_datafile(OBSERVED_DISRUPTIONS_FILE) or {}
+    stored_forecasts = harvester.read_datafile(FORECAST_FILE) or {}
+
+    observed_disruptions = {}
+
+    for model in prediction_models:
+        model.stored_disruptions = harvester.read_datafile(model.JSON_FILE) or {}
+
+    for timestamp, values in stored_forecasts.iteritems():
+        for model in prediction_models:
+            disruption_amount = model.stored_disruptions.get(timestamp, '-')
+            stored_disruptions[timestamp].update({model.name: disruption_amount})
+
+        observed_disruptions[timestamp] = stored_observed_disruptions.get(timestamp) or \
+                                          harvester.hsl_api(iso8601.parse_date(timestamp))
+
+    stored_observed_disruptions.update(observed_disruptions)
+
+    with open(OBSERVED_DISRUPTIONS_FILE, 'w') as f:
+        json.dump(stored_observed_disruptions, f)
+
+    return render_template('history.html', forecasts=stored_forecasts, predicted=stored_disruptions,
+                           actual=observed_disruptions)
 
 
 @app.route('/test/')
