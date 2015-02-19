@@ -1,6 +1,18 @@
-FOO!
-{% for time, value in forecasts.iteritems %}
-    <tr>
-      <td>{{ time }}</td>
-    </tr>
+<table style="border-spacing: 10px;">
+  <tr>
+    <th>Time</th>
+    <th>Temp</th>
+    <th>Wind</th>
+    <th>Rainfall</th>
+    <th>Predicted disruptions</th>
+  </tr>
+{% for time, value in forecasts|dictsort %}
+  <tr>
+    <td>{{ time }}</td>
+    <td>{{ value['Temperature'] }}</td>
+    <td>{{ value['WindSpeedMS'] }}</td>
+    <td>{{ value['Precipitation1h'] }}</td>
+    <td>{{ value['prediction'] }}</td>
+  </tr>
 {% endfor %}
+</table>
