@@ -10,7 +10,7 @@ from models import prediction_models
 
 FORECAST_FILE = 'forecasts.json'
 
-apikey = os.environ['fmi_apikey']
+apikey = os.environ.get('fmi_apikey')
 harvester = APIHarvester(logfile="harvester.log", apikey=apikey)
 
 forecasts = harvester.fmi_forecast()
