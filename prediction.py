@@ -1,14 +1,15 @@
 from collections import defaultdict
-import copy
+from datetime import datetime, timedelta, time
 import json
 import os
+
 from flask import Flask, render_template
 import iso8601
-from sklearn.externals import joblib
-from apiharvester import APIHarvester
 
+from apiharvester import APIHarvester
 from store_predictions import FORECAST_FILE
 from models import prediction_models
+
 
 OBSERVED_DISRUPTIONS_FILE = 'disruptions_observed.json'
 
@@ -19,7 +20,7 @@ app.debug = True
 if __name__ == '__main__':
     app.run()
 
-apikey = os.environ['fmi_apikey']
+apikey = os.environ.get('fmi_apikey')
 harvester = APIHarvester(logfile="harvester.log", apikey=apikey)
 
 
@@ -53,8 +54,10 @@ def prediction_history():
             disruption_amount = model.stored_disruptions.get(timestamp, '-')
             stored_disruptions[timestamp].update({model.name: disruption_amount})
 
-        observed_disruptions[timestamp] = stored_observed_disruptions.get(timestamp) or \
-                                          harvester.hsl_api(iso8601.parse_date(timestamp))
+        obs_time = iso8601.parse_date(timestamp).replace(tzinfo=None)
+        now_time = datetime.utcnow()
+        if timedelta(0) < now_time - obs_time < timedelta(days=2):
+            observed_disruptions[timestamp] = harvester.hsl_api(iso8601.parse_date(timestamp))
 
     stored_observed_disruptions.update(observed_disruptions)
 
@@ -62,7 +65,7 @@ def prediction_history():
         json.dump(stored_observed_disruptions, f)
 
     return render_template('history.html', forecasts=stored_forecasts, predicted=stored_disruptions,
-                           actual=observed_disruptions)
+                           actual=stored_observed_disruptions)
 
 
 @app.route('/test/')

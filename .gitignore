@@ -1,5 +1,6 @@
 *.py[co]
 *.log
+*.json
 
 # Packages
 *.egg
