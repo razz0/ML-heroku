@@ -1,22 +1,54 @@
-<table style="border-spacing: 10px;">
-  <tr>
-    <th>Time</th>
-    <th>Temp</th>
-    <th>Wind</th>
-    <th>Rainfall</th>
-    {% for model, value in disruptions.itervalues().next()|dictsort %}
-        <th>{{ model }}</th>
-    {% endfor %}
-  </tr>
-{% for time, value in forecasts|dictsort %}
-  <tr>
-    <td>{{ time }}</td>
-    <td>{{ value['Temperature'] }}</td>
-    <td>{{ value['WindSpeedMS'] }}</td>
-    <td>{{ value['Precipitation1h'] }}</td>
-    {% for model, dis in disruptions[time]|dictsort %}
-        <td>{{ dis }}</td>
-    {% endfor %}
-  </tr>
-{% endfor %}
-</table>
+{% extends "layout.html" %}
+{% block content %}
+
+<div>
+    <table class="table table-striped table-bordered table-condensed table-hover">
+      <tr class="info">
+        <th>Date</th>
+        {% for time, value in forecasts|dictsort %}
+          {% if time[8:10] != previous %}
+            <td>{{ time[8:10] }}.{{ time[5:7] }}.</td>
+          {% else %}
+            <td></td>
+          {% endif %}
+          {% set previous = time[8:10] %}
+        {% endfor %}
+      </tr>
+      <tr class="info">
+        <th>Hour</th>
+        {% for time, value in forecasts|dictsort %}
+            <td>{{ time[11:13] }}</td>
+        {% endfor %}
+      </tr>
+      <tr class="info">
+        <th>Temp</th>
+        {% for time, value in forecasts|dictsort %}
+            <td>{{ value['Temperature']|int }}</td>
+        {% endfor %}
+      </tr>
+      <tr class="info">
+        <th>Rainfall</th>
+        {% for time, value in forecasts|dictsort %}
+            <td>{{ value['Precipitation1h'] }}</td>
+        {% endfor %}
+      </tr>
+      <tr class="info">
+        <th>Wind speed</th>
+        {% for time, value in forecasts|dictsort %}
+            <td>{{ value['WindSpeedMS']|int }}</td>
+        {% endfor %}
+      </tr>
+      {% for model, predictions in disruptions|dictsort %}
+        <tr>
+          <th>{{ model }}</th>
+          {% for time, value in predictions|dictsort %}
+            <td {% if value %}class="danger"{% endif %}>
+              {{ value }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+
+    </table>
+</div>
+
+{% endblock %}

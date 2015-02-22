@@ -1,6 +1,6 @@
 gunicorn==19.0.0
 Flask
-git+git://github.com/razz0/ML-project.git#egg=ML-project==0.0.4
+git+git://github.com/razz0/traffic_disruption.git#egg=traffic_disruption==0.0.5
 numpy==1.8.1
 scipy==0.14.0
 scikit-learn==0.14.1
