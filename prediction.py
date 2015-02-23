@@ -4,7 +4,7 @@ import json
 import os
 import urllib2
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import iso8601
 
 from apiharvester import APIHarvester
@@ -55,7 +55,7 @@ def prediction():
 
 @app.route('/history/')
 def prediction_history():
-    prediction_history = defaultdict(dict)
+    predictions_history = defaultdict(dict)
     forecast_history = defaultdict(dict)
 
     url = '{backend}data/disruptions_observed.json'.format(backend=BACKEND_URL)
@@ -77,21 +77,11 @@ def prediction_history():
         forecast_history[timestamp] = values
 
         for model in prediction_models:
-            disruption_amount = model.stored_disruptions.get(timestamp, '-')
-            prediction_history[model.name].update({timestamp: disruption_amount})
+            disruption_amount = model.stored_disruptions.get(timestamp, '')
+            predictions_history[model.name].update({timestamp: disruption_amount})
 
-        prediction_history[' Actual'].update({timestamp: stored_observed_disruptions.get(timestamp, '-')})
+        predictions_history[' Actual'].update({timestamp: stored_observed_disruptions.get(timestamp, '')})
 
-    app.logger.debug(prediction_history)
-    return render_template('prediction.html', forecasts=forecast_history, disruptions=prediction_history)
-
-
-@app.route('/test/')
-def prediction_test():
-    forecasts = {}
-
-    # TODO: Create form for trying out values
-
-    return render_template('prediction.html', forecasts=forecasts)
-
+    app.logger.debug(predictions_history)
+    return render_template('prediction.html', forecasts=forecast_history, disruptions=predictions_history)
 
