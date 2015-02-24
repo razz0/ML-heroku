@@ -1,6 +1,6 @@
 gunicorn==19.0.0
 Flask
-git+git://github.com/razz0/traffic_disruption.git#egg=traffic_disruption
 iso8601
 pytz==2014.10
 python-dateutil==1.4.1
+git+git://github.com/razz0/traffic_disruption.git#egg=traffic_disruption==0.0.8
