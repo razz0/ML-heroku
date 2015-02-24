@@ -44,16 +44,19 @@ def prediction():
     for timestamp, values in forecasts.iteritems():
 
         forecast_time = iso8601.parse_date(timestamp, tz.tzutc)
-        if now_time >= forecast_time:
+        if now_time > forecast_time:
             continue
 
-        future_forecasts[timestamp] = values
+        local_time = forecast_time.astimezone(tz.gettz('Europe/Helsinki'))
+        local_timestamp = local_time.isoformat()
+
+        future_forecasts[local_timestamp] = values
 
         for model in prediction_models:
             disruption_amount = model.stored_disruptions.get(timestamp)
-            disruptions[model.name].update({timestamp: disruption_amount})
+            disruptions[model.name].update({local_timestamp: disruption_amount})
 
-    return render_template('prediction.html', forecasts=future_forecasts, disruptions=disruptions)
+    return render_template('prediction.html', forecasts=future_forecasts, disruptions=disruptions, page='forecast')
 
 
 @app.route('/history/')
@@ -77,14 +80,17 @@ def prediction_history():
         if now_time < observation_time:
             continue
 
-        forecast_history[timestamp] = values
+        local_time = observation_time.astimezone(tz.gettz('Europe/Helsinki'))
+        local_timestamp = local_time.isoformat()
+
+        forecast_history[local_timestamp] = values
 
         for model in prediction_models:
             disruption_amount = model.stored_disruptions.get(timestamp, '')
-            predictions_history[model.name].update({timestamp: disruption_amount})
+            predictions_history[model.name].update({local_timestamp: disruption_amount})
 
-        predictions_history[' Actual'].update({timestamp: stored_observed_disruptions.get(timestamp, '')})
+        predictions_history[' Actual'].update({local_timestamp: stored_observed_disruptions.get(timestamp, '')})
 
     app.logger.debug(predictions_history)
-    return render_template('prediction.html', forecasts=forecast_history, disruptions=predictions_history)
+    return render_template('prediction.html', forecasts=forecast_history, disruptions=predictions_history, page='history')
 

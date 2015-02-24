@@ -1,4 +1,4 @@
-{% set title='Traffic disruption prediction' %}
+{% set title='Helsinki traffic disruption forecast' %}
 <!DOCTYPE html>
 <html>
   <head>
@@ -14,8 +14,13 @@
   <body>
     <div class="container">
       <h2>{{ title }}</h2>
-      <a href="/">Disruption forecast</a>
-      <a href="/history">Disruption prediction history</a>
+      <div>
+        <br />
+        <a class="btn btn-default{% if page=='forecast' %} active {% endif %}" role="button" href="/">Disruption forecast</a>
+        <a class="btn btn-default{% if page=='history' %} active {% endif %}" role="button" href="/history">Disruption prediction history</a>
+        <br />
+        <br />
+      </div>
       {% block content %}{% endblock %}
     </div>
     <!-- Latest compiled and minified JavaScript -->

@@ -29,7 +29,7 @@
       <tr class="info">
         <th>Rainfall</th>
         {% for time, value in forecasts|dictsort %}
-            <td>{{ value['Precipitation1h'] }}</td>
+            <td>{{ value['Precipitation1h'] if (value['Precipitation1h'] != '0.0') else '0' }}</td>
         {% endfor %}
       </tr>
       <tr class="info">
