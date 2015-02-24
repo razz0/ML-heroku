@@ -3,9 +3,11 @@ from datetime import datetime, timedelta
 import json
 import os
 import urllib2
+from dateutil import tz
 
 from flask import Flask, render_template, request
 import iso8601
+import pytz
 
 from apiharvester import APIHarvester
 from models import prediction_models
@@ -37,10 +39,11 @@ def prediction():
 
     future_forecasts = {}
 
+    now_time = datetime.utcnow().replace(tzinfo=tz.tzutc())
+    app.logger.debug(now_time)
     for timestamp, values in forecasts.iteritems():
 
-        forecast_time = iso8601.parse_date(timestamp).replace(tzinfo=None)
-        now_time = datetime.utcnow()
+        forecast_time = iso8601.parse_date(timestamp, tz.tzutc)
         if now_time >= forecast_time:
             continue
 
@@ -69,8 +72,8 @@ def prediction_history():
         model.stored_disruptions = json.loads(urllib2.urlopen(url).read())
 
     for timestamp, values in stored_forecasts.iteritems():
-        observation_time = iso8601.parse_date(timestamp).replace(tzinfo=None)
-        now_time = datetime.utcnow()
+        observation_time = iso8601.parse_date(timestamp, tz.tzutc)
+        now_time = datetime.utcnow().replace(tzinfo=tz.tzutc())
         if now_time < observation_time:
             continue
 
