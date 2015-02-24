@@ -1,4 +1,5 @@
 from collections import defaultdict
+import copy
 from datetime import datetime, timedelta
 import json
 import os
@@ -32,7 +33,7 @@ def prediction():
     url = '{backend}data/forecasts.json'.format(backend=BACKEND_URL)
     forecasts = json.loads(urllib2.urlopen(url).read())
 
-    used_models = prediction_models
+    used_models = copy.copy(prediction_models)
     used_models.pop(0)  # Remove 0-model
 
     for model in used_models:
