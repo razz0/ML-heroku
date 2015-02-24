@@ -32,9 +32,10 @@ def prediction():
     url = '{backend}data/forecasts.json'.format(backend=BACKEND_URL)
     forecasts = json.loads(urllib2.urlopen(url).read())
 
-    prediction_models.pop(0)  # Remove 0-model
+    used_models = prediction_models
+    used_models.pop(0)  # Remove 0-model
 
-    for model in prediction_models:
+    for model in used_models:
         url = '{backend}{file}'.format(backend=BACKEND_URL, file=model.JSON_FILE)
         app.logger.debug(url)
         model.stored_disruptions = json.loads(urllib2.urlopen(url).read())
@@ -54,7 +55,7 @@ def prediction():
 
         future_forecasts[local_timestamp] = values
 
-        for model in prediction_models:
+        for model in used_models:
             disruption_amount = model.stored_disruptions.get(timestamp)
             disruptions[model.name].update({local_timestamp: disruption_amount})
 
