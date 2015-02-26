@@ -40,7 +40,7 @@
       </tr>
       {% for model, predictions in disruptions|dictsort %}
         <tr>
-          <th>{{ model }}</th>
+          <th>{{ model }} <div class="text-muted">{{ model_accuracy.get(model)|int }}%</div></th>
           {% for time, value in predictions|dictsort %}
             <td {% if value %}class="danger"{% endif %}>
               {{ value }}</td>

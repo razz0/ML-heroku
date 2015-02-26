@@ -67,6 +67,7 @@ def prediction():
 def prediction_history():
     predictions_history = defaultdict(dict)
     forecast_history = defaultdict(dict)
+    model_accuracy = defaultdict(float)
 
     url = '{backend}data/disruptions_observed.json'.format(backend=BACKEND_URL)
     stored_observed_disruptions = json.loads(urllib2.urlopen(url).read())
@@ -89,12 +90,25 @@ def prediction_history():
 
         forecast_history[local_timestamp] = values
 
+        observed_disruption_amount = stored_observed_disruptions.get(timestamp, '')
+
         for model in prediction_models:
+            # Localize timestamps
             disruption_amount = model.stored_disruptions.get(timestamp, '')
             predictions_history[model.name].update({local_timestamp: disruption_amount})
 
-        predictions_history[' Actual'].update({local_timestamp: stored_observed_disruptions.get(timestamp, '')})
+            if observed_disruption_amount:
+                model_accuracy[model.name] += min(disruption_amount, observed_disruption_amount) / \
+                                              max(disruption_amount, observed_disruption_amount)
+            elif not disruption_amount:
+                # Correct 0 prediction
+                model_accuracy[model.name] += 1.0
+
+        predictions_history[' Actual'].update({local_timestamp: observed_disruption_amount})
+
+    for model in prediction_models:
+        model_accuracy[model.name] /= len(stored_forecasts) * 0.01  # Use percentage
 
     app.logger.debug(predictions_history)
-    return render_template('prediction.html', forecasts=forecast_history, disruptions=predictions_history, page='history')
+    return render_template('prediction.html', forecasts=forecast_history, disruptions=predictions_history, page='history', model_accuracy=model_accuracy)
 
