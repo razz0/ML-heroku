@@ -3,12 +3,11 @@ import copy
 from datetime import datetime, timedelta
 import json
 import os
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from dateutil import tz
 
 from flask import Flask, render_template, request
 import iso8601
-import pytz
 
 from apiharvester import APIHarvester
 from models import prediction_models
@@ -31,7 +30,7 @@ harvester = APIHarvester(logfile="harvester.log", apikey='dummy')
 def prediction():
     disruptions = defaultdict(dict)
     url = '{backend}data/forecasts.json'.format(backend=BACKEND_URL)
-    forecasts = json.loads(urllib2.urlopen(url).read())
+    forecasts = json.loads(urllib.request.urlopen(url).read())
 
     used_models = copy.copy(prediction_models)
     used_models.pop(0)  # Remove 0-model
@@ -39,13 +38,13 @@ def prediction():
     for model in used_models:
         url = '{backend}{file}'.format(backend=BACKEND_URL, file=model.JSON_FILE)
         app.logger.debug(url)
-        model.stored_disruptions = json.loads(urllib2.urlopen(url).read())
+        model.stored_disruptions = json.loads(urllib.request.urlopen(url).read())
 
     future_forecasts = {}
 
     now_time = datetime.utcnow().replace(tzinfo=tz.tzutc())
     app.logger.debug(now_time)
-    for timestamp, values in forecasts.iteritems():
+    for timestamp, values in forecasts.items():
 
         forecast_time = iso8601.parse_date(timestamp, tz.tzutc)
         if now_time > forecast_time:
@@ -70,16 +69,16 @@ def prediction_history():
     model_accuracy = defaultdict(float)
 
     url = '{backend}data/disruptions_observed.json'.format(backend=BACKEND_URL)
-    stored_observed_disruptions = json.loads(urllib2.urlopen(url).read())
+    stored_observed_disruptions = json.loads(urllib.request.urlopen(url).read())
 
     url = '{backend}data/forecasts.json'.format(backend=BACKEND_URL)
-    stored_forecasts = json.loads(urllib2.urlopen(url).read())
+    stored_forecasts = json.loads(urllib.request.urlopen(url).read())
 
     for model in prediction_models:
         url = '{backend}{file}'.format(backend=BACKEND_URL, file=model.JSON_FILE)
-        model.stored_disruptions = json.loads(urllib2.urlopen(url).read())
+        model.stored_disruptions = json.loads(urllib.request.urlopen(url).read())
 
-    for timestamp, values in stored_forecasts.iteritems():
+    for timestamp, values in stored_forecasts.items():
         observation_time = iso8601.parse_date(timestamp, tz.tzutc)
         now_time = datetime.utcnow().replace(tzinfo=tz.tzutc())
         if now_time < observation_time:
